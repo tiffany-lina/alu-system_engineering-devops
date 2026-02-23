@@ -29,3 +29,10 @@ This script generates an RSA key pair with the following specifications:
 
 ```bash
 ./1-create_ssh_key_pair
+### 2-ssh_config
+This file contains an SSH client configuration to connect to a remote server using the private key `~/.ssh/school` and disables password authentication.  
+
+**Usage:**
+
+```bash
+ssh -F 2-ssh_config myserver
