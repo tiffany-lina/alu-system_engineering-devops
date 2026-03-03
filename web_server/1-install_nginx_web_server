@@ -1,8 +1,24 @@
 #!/usr/bin/env bash
-# Installs and configures Nginx to return "Holberton School" at root
+# Install and configure nginx web server
 
-apt-get update -y
-apt-get install -y nginx
-echo "Holberton School" | sudo tee /var/www/html/index.html > /dev/null
-echo "Holberton School" | sudo tee /var/www/html/index.nginx-debian.html > /dev/null
-service nginx restart 
+# Update packages
+apt-get -y update
+
+# Install nginx
+apt-get -y install nginx
+
+# Ensure nginx listens on port 80
+sed -i 's/listen 80 default_server;/listen 80 default_server;/' /etc/nginx/sites-available/default
+
+# Remove default index files
+rm -f /var/www/html/index.nginx-debian.html
+rm -f /var/www/html/index.html
+
+# Create required page
+echo "Holberton School for the win!" > /var/www/html/index.html
+
+# Start nginx (NOT systemctl)
+service nginx start
+
+# Restart to be safe
+service nginx restart
