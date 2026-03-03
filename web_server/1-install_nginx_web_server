@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Installs nginx and configures it to serve a page containing "Holberton School"
+
+apt-get update -y
+apt-get install nginx -y
+
+echo "Holberton School for the win!" > /var/www/html/index.html
+
+service nginx restart
