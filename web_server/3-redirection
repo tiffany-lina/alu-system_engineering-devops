@@ -2,25 +2,42 @@
 # Configures Nginx to redirect /redirect_me with a 301 Moved Permanently
 
 set -e
+
+# Update and install Nginx
 sudo apt update -y
 sudo apt install -y nginx
+
+# Enable and start Nginx
 sudo systemctl enable nginx
 sudo systemctl start nginx
-sudo cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.bak
+
+# Backup default site if not already backed up
+[ ! -f /etc/nginx/sites-available/default.bak ] && sudo cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.bak
+
+# Overwrite default site config with redirect
 sudo tee /etc/nginx/sites-available/default > /dev/null <<'EOF'
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
+
     root /var/www/html;
     index index.html index.htm index.nginx-debian.html;
+
     server_name _;
+
     location /redirect_me {
         return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4;
     }
+
     location / {
         try_files $uri $uri/ =404;
     }
 }
 EOF
+
+# Ensure sites-enabled points to the default site
+sudo ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+
+# Test config and reload Nginx
 sudo nginx -t
 sudo systemctl reload nginx
