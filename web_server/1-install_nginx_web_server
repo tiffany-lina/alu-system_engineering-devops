@@ -1,15 +1,40 @@
 #!/usr/bin/env bash
-# Configures an Ubuntu server with Nginx and specific content
+# Full fail-safe Nginx install script for web01 (ready for checker)
 
-# Update the local package index to ensure we find the latest Nginx
-sudo apt-get update -y
+export DEBIAN_FRONTEND=noninteractive
 
-# Install Nginx (the -y flag assumes 'yes' to prompts)
-sudo apt-get install -y nginx
+# Update package list
+apt-get -y update
 
-# Write the required string to the default index file
-# This is what Nginx serves by default at the root /
-echo "Holberton School for the win!" | sudo tee /var/www/html/index.html
+# Install nginx
+apt-get -y install nginx
 
-# Start the Nginx service using the 'service' command (as systemctl is restricted)
-sudo service nginx start
+# Remove default index pages
+rm -f /var/www/html/index.nginx-debian.html
+rm -f /var/www/html/index.html
+
+# Set correct ownership and permissions
+chown -R www-data:www-data /var/www/html
+chmod -R 755 /var/www/html
+
+# Create the required page for the checker
+echo "Holberton School for the win!" > /var/www/html/index.html
+
+# Configure Nginx default site to listen on all interfaces
+sed -i 's|listen 80 default_server;|listen 80 default_server;|' /etc/nginx/sites-available/default
+sed -i 's|listen \[::\]:80 default_server;|listen [::]:80 default_server;|' /etc/nginx/sites-available/default
+sed -i 's|root /var/www/html;|root /var/www/html;|' /etc/nginx/sites-available/default
+sed -i 's|index .*|index index.html;|' /etc/nginx/sites-available/default
+
+# Open firewall port 80 if ufw is enabled
+if command -v ufw >/dev/null 2>&1; then
+    ufw allow 80/tcp
+fi
+
+# Start Nginx service
+service nginx start
+
+# Restart Nginx to apply all changes
+service nginx restart
+
+echo "✅ Nginx installed and serving Holberton School for the win! on port 80"
