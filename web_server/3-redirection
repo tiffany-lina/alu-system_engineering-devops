@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Configures Nginx to redirect /redirect_me with a 301 Moved Permanently
+
 set -e
 sudo apt update -y
 sudo apt install -y nginx
