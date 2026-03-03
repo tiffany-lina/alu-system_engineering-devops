@@ -1,24 +1,15 @@
 #!/usr/bin/env bash
-# Install and configure nginx web server
+# Configures an Ubuntu server with Nginx and specific content
 
-# Update packages
-apt-get -y update
+# Update the local package index to ensure we find the latest Nginx
+sudo apt-get update -y
 
-# Install nginx
-apt-get -y install nginx
+# Install Nginx (the -y flag assumes 'yes' to prompts)
+sudo apt-get install -y nginx
 
-# Ensure nginx listens on port 80
-sed -i 's/listen 80 default_server;/listen 80 default_server;/' /etc/nginx/sites-available/default
+# Write the required string to the default index file
+# This is what Nginx serves by default at the root /
+echo "Holberton School for the win!" | sudo tee /var/www/html/index.html
 
-# Remove default index files
-rm -f /var/www/html/index.nginx-debian.html
-rm -f /var/www/html/index.html
-
-# Create required page
-echo "Holberton School for the win!" > /var/www/html/index.html
-
-# Start nginx (NOT systemctl)
-service nginx start
-
-# Restart to be safe
-service nginx restart
+# Start the Nginx service using the 'service' command (as systemctl is restricted)
+sudo service nginx start
