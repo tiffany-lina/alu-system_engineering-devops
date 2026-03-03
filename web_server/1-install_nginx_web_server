@@ -1,14 +1,33 @@
 #!/usr/bin/env bash
-# Install and configure nginx on Ubuntu
+# Installs and configures Nginx to serve "Holberton School for the win!" on Ubuntu 16.04
 
 # Update package list
 apt-get update -y
 
-# Install nginx
-apt-get install nginx -y
+# Install nginx if not installed
+if ! dpkg -l | grep -qw nginx; then
+    apt-get install nginx -y
+fi
 
-# Create custom page
+# Make sure default site is enabled
+ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+
+# Write the page content
 echo "Holberton School for the win!" > /var/www/html/index.html
 
-# Ensure nginx is running (NOT systemctl)
-service nginx restart
+# Fix listen port in case default_server lines exist
+sed -i 's/listen 80 default_server;/listen 80;/g' /etc/nginx/sites-available/default
+sed -i 's/listen \[::\]:80 default_server;/listen [::]:80;/g' /etc/nginx/sites-available/default
+
+# Test nginx configuration
+nginx -t
+
+# Restart Nginx safely
+service nginx stop
+service nginx start
+
+# Confirm Nginx is running
+if ! pgrep nginx > /dev/null; then
+    echo "Nginx failed to start!"
+    exit 1
+fi
