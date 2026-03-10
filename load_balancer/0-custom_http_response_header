@@ -1,0 +1,11 @@
+#!/bin/bash
+apt-get update -y
+apt-get install -y nginx
+systemctl start nginx
+systemctl enable nginx
+HOSTNAME=$(hostname)
+NGINX_CONF="/etc/nginx/sites-available/default"
+cp $NGINX_CONF ${NGINX_CONF}.bak
+sed -i "/listen 80 default_server;/a\\
+    add_header X-Served-By $HOSTNAME;" $NGINX_CONF
+nginx -t && systemctl reload nginx
