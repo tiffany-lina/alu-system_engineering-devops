@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Configures a new Ubuntu server with Nginx and adds a custom HTTP header X-Served-By
+
 apt-get update -y
 apt-get install -y nginx
 systemctl start nginx
