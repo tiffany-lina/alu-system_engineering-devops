@@ -1,53 +1,27 @@
-#!/bin/bash
-# 1-install_load_balancer
-# Install and configure HAProxy load balancer
+#!/usr/bin/env bash
+# This script installs and configures HAProxy load balancer
 
-set -e
+apt-get update
+apt-get install -y haproxy
 
-# Variables - replace with your actual student ID
-STUDENT_ID="7019"
-WEB1_IP="34.203.218.185"
-WEB2_IP="44.202.164.145"
-
-# Update system and install HAProxy
-sudo apt-get update -y
-sudo apt-get install -y haproxy curl
-
-# Enable HAProxy service on startup
-sudo systemctl enable haproxy
-
-# Backup original HAProxy config
-sudo cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.bak
-
-# Write new HAProxy configuration
-sudo tee /etc/haproxy/haproxy.cfg > /dev/null <<EOL
+cat <<EOF > /etc/haproxy/haproxy.cfg
 global
-    log /dev/log    local0
-    log /dev/log    local1 notice
     daemon
-    maxconn 2048
 
 defaults
-    log     global
-    mode    http
-    option  httplog
-    option  dontlognull
+    mode http
     timeout connect 5000ms
-    timeout client  50000ms
-    timeout server  50000ms
-    option forwardfor
+    timeout client 50000ms
+    timeout server 50000ms
 
 frontend http_front
     bind *:80
-    default_backend http_back
+    default_backend web_servers
 
-backend http_back
+backend web_servers
     balance roundrobin
-    server ${STUDENT_ID}-web-01 ${WEB1_IP}:80 check
-    server ${STUDENT_ID}-web-02 ${WEB2_IP}:80 check
-EOL
+    server web-01 34.203.218.185:80 check
+    server web-02 44.202.164.145:80 check
+EOF
 
-# Restart HAProxy
-sudo systemctl restart haproxy
-
-echo "HAProxy installed and configured successfully!"
+service haproxy restart
