@@ -1,27 +1,24 @@
 #!/bin/bash
-# Script to block all incoming traffic except SSH, HTTP, HTTPS
+# Script to block all incoming traffic except 22, 80, 443
 
-# Exit if any command fails
-set -e
-
-echo "Installing ufw..."
+# Update system and install ufw
 sudo apt update
-sudo apt install ufw -y
+sudo apt install -y ufw
 
-echo "Resetting ufw..."
+# Reset any previous rules
 sudo ufw --force reset
 
-echo "Setting default policies..."
+# Default policies
 sudo ufw default deny incoming
 sudo ufw default allow outgoing
 
-echo "Allowing SSH, HTTP, HTTPS..."
-sudo ufw allow 22/tcp
-sudo ufw allow 80/tcp
-sudo ufw allow 443/tcp
+# Allow required ports (order is important!)
+sudo ufw allow 22/tcp   # SSH
+sudo ufw allow 80/tcp   # HTTP
+sudo ufw allow 443/tcp  # HTTPS
 
-echo "Enabling ufw..."
+# Enable UFW
 sudo ufw --force enable
 
-echo "Firewall status:"
+# Show status
 sudo ufw status verbose
