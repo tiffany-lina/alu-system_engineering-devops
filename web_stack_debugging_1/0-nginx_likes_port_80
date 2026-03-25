@@ -1,15 +1,20 @@
 #!/usr/bin/env bash
-# Ensure Nginx runs on port 80 (IPv4 & IPv6), stopping Apache or Nginx if needed
+# Ensure Nginx runs on port 80 (IPv4 & IPv6) and returns HTTP 200 without extra headers
 
-# Fix default site to listen on IPv4 and IPv6
-if ! grep -q "^listen 80" /etc/nginx/sites-enabled/default; then
-    sed -i "s|listen \[::\]:80 default_server;|listen 80 default_server;\nlisten [::]:80 default_server;|" /etc/nginx/sites-enabled/default
-fi
-if ! grep -q "^listen \[::\]:80" /etc/nginx/sites-enabled/default; then
-    sed -i "/listen 80 default_server;/a listen [::]:80 default_server;" /etc/nginx/sites-enabled/default
-fi
+# Fix listen directives (IPv4 + IPv6)
+sed -i 's|listen \[::\]:80 default_server;|listen 80 default_server;\nlisten [::]:80 default_server;|' /etc/nginx/sites-enabled/default
 
-# Kill any process using port 80 (Apache or old Nginx)
+# Ensure IPv6 line exists
+grep -q "listen \[::\]:80" /etc/nginx/sites-enabled/default || \
+sed -i '/listen 80 default_server;/a listen [::]:80 default_server;' /etc/nginx/sites-enabled/default
+
+# Remove any custom headers
+sed -i '/add_header/d' /etc/nginx/sites-enabled/default
+
+# Ensure valid HTML page
+echo "Hello Holberton" > /var/www/html/index.html
+
+# Stop Apache and old Nginx
 pkill apache2 >/dev/null 2>&1 || true
 pkill nginx >/dev/null 2>&1 || true
 
