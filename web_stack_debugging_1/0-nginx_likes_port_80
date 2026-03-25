@@ -1,22 +1,34 @@
 #!/usr/bin/env bash
-# Ensure Nginx runs on port 80 (IPv4 & IPv6) and returns HTTP 200 without extra headers
+# This script installs Nginx, configures it to listen on port 80, and starts it in a container
 
-# Fix listen directives (IPv4 + IPv6)
-sed -i 's|listen \[::\]:80 default_server;|listen 80 default_server;\nlisten [::]:80 default_server;|' /etc/nginx/sites-enabled/default
+# Install Nginx if missing
+if ! command -v nginx >/dev/null 2>&1; then
+    apt-get update
+    apt-get install -y nginx
+fi
 
-# Ensure IPv6 line exists
-grep -q "listen \[::\]:80" /etc/nginx/sites-enabled/default || \
-sed -i '/listen 80 default_server;/a listen [::]:80 default_server;' /etc/nginx/sites-enabled/default
+# Configure default site to listen on port 80
+cat >/etc/nginx/sites-available/default <<'EOF'
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
 
-# Remove any custom headers
-sed -i '/add_header/d' /etc/nginx/sites-enabled/default
+    root /var/www/html;
+    index index.html index.htm index.nginx-debian.html;
 
-# Ensure valid HTML page
-echo "Hello Holberton" > /var/www/html/index.html
+    server_name _;
 
-# Stop Apache and old Nginx
-pkill apache2 >/dev/null 2>&1 || true
-pkill nginx >/dev/null 2>&1 || true
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}
+EOF
+
+# Enable default site
+ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+
+# Test Nginx config
+nginx -t
 
 # Start Nginx
 nginx
