@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Ensure Nginx is running and listening on port 80 for all IPv4 addresses in a container
+
+# Make sure Nginx listens on 0.0.0.0:80
+if ! grep -q "^listen 80" /etc/nginx/sites-enabled/default; then
+    sed -i "s|listen \[::\]:80 default_server;|listen 80 default_server;\nlisten [::]:80 default_server;|" /etc/nginx/sites-enabled/default
+fi
+
+# Start Nginx if not running
+if ! pgrep nginx >/dev/null 2>&1; then
+    nginx
+else
+    nginx -s reload
+fi
