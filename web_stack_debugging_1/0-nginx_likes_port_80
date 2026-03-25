@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
-# Ensure Nginx is running and listening on port 80 for all IPv4 addresses in a container
+# Ensure Nginx runs on port 80 (IPv4 & IPv6), stopping Apache or Nginx if needed
 
-# Make sure Nginx listens on 0.0.0.0:80
+# Fix default site to listen on IPv4 and IPv6
 if ! grep -q "^listen 80" /etc/nginx/sites-enabled/default; then
     sed -i "s|listen \[::\]:80 default_server;|listen 80 default_server;\nlisten [::]:80 default_server;|" /etc/nginx/sites-enabled/default
 fi
-
-# Start Nginx if not running
-if ! pgrep nginx >/dev/null 2>&1; then
-    nginx
-else
-    nginx -s reload
+if ! grep -q "^listen \[::\]:80" /etc/nginx/sites-enabled/default; then
+    sed -i "/listen 80 default_server;/a listen [::]:80 default_server;" /etc/nginx/sites-enabled/default
 fi
+
+# Kill any process using port 80 (Apache or old Nginx)
+pkill apache2 >/dev/null 2>&1 || true
+pkill nginx >/dev/null 2>&1 || true
+
+# Start Nginx
+nginx
