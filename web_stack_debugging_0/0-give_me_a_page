@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# This script installs Apache, starts it, and serves Hello Holberton
+
+# Update packages and install Apache
+apt-get update
+apt-get install -y apache2
+
+# Start Apache service
+service apache2 start
+
+# Create the Hello Holberton page
+echo "Hello Holberton" > /var/www/html/index.html
