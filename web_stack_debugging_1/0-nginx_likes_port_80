@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# This script installs and starts Nginx so it serves web pages on port 80
+
+# Update package index
 apt-get update -y
+
+# Install nginx if not already installed
 apt-get install -y nginx
+
+# Start nginx service
 service nginx start
