@@ -1,43 +1,19 @@
 #!/usr/bin/env bash
-# Configures Nginx to redirect /redirect_me with a 301 Moved Permanently
+# Configures Nginx to redirect /redirect_me to a YouTube video with 301
 
-set -e
+# Install nginx if not installed
+apt-get update -y
+apt-get install nginx -y
 
-# Update and install Nginx
-sudo apt update -y
-sudo apt install -y nginx
+# Insert redirect inside the first server block in default site
+awk '
+/server {/ { print; inside=1; next }
+inside && /}/ { print "    location /redirect_me/ { return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4; }"; inside=0 }
+{ print }
+' /etc/nginx/sites-available/default > /tmp/default && mv /tmp/default /etc/nginx/sites-available/default
 
-# Enable and start Nginx
-sudo systemctl enable nginx
-sudo systemctl start nginx
+# Test nginx config
+nginx -t
 
-# Backup default site if not already backed up
-[ ! -f /etc/nginx/sites-available/default.bak ] && sudo cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.bak
-
-# Overwrite default site config with redirect
-sudo tee /etc/nginx/sites-available/default > /dev/null <<'EOF'
-server {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-
-    root /var/www/html;
-    index index.html index.htm index.nginx-debian.html;
-
-    server_name _;
-
-    location /redirect_me {
-        return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4;
-    }
-
-    location / {
-        try_files $uri $uri/ =404;
-    }
-}
-EOF
-
-# Ensure sites-enabled points to the default site
-sudo ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
-
-# Test config and reload Nginx
-sudo nginx -t
-sudo systemctl reload nginx
+# Reload nginx (works without systemd)
+nginx -s reload
