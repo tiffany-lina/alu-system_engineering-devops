@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Configure Nginx to run as nginx user on port 8080 and listen on all active IPs
+
+# Stop Nginx if running
+if pgrep nginx > /dev/null; then
+    nginx -s stop
+fi
+
+# Create nginx user if it doesn't exist
+if ! id "nginx" &>/dev/null; then
+    useradd -r -s /usr/sbin/nologin nginx
+fi
+
+# Update main nginx.conf to run as nginx user
+sed -i 's/^user .*/user nginx;/' /etc/nginx/nginx.conf
+
+# Update default server block to listen on port 8080 on all IPs
+sed -i 's/listen 80 default_server;/listen 8080 default_server;/' /etc/nginx/sites-available/default
+sed -i 's/listen \[::\]:80 default_server;/listen [::]:8080 default_server;/' /etc/nginx/sites-available/default
+
+# Fix ownership of log and html directories
+chown -R nginx:nginx /var/log/nginx
+chown -R nginx:nginx /var/lib/nginx
+chown -R nginx:nginx /var/www/html
+
+# Start Nginx
+nginx
