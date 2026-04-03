@@ -1,38 +1,30 @@
 #!/usr/bin/env bash
-# 4-not_found_page_404 for Docker/container environments
+# 4-not_found_page_404: configure a new Ubuntu machine with a custom 404 page
 
-set -e
-
-# Install Nginx if missing
+# Update and install Nginx
 apt-get update -y
 apt-get install -y nginx
 
-# Create custom 404 page
+# Create the custom 404 page
 mkdir -p /var/www/html
 echo "Ceci n'est pas une page" > /var/www/html/404.html
 
-# Backup default Nginx config
-cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.bak || true
-
-# Configure Nginx for custom 404
+# Overwrite default site config with minimal setup
 cat > /etc/nginx/sites-available/default <<EOF
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
 
     root /var/www/html;
-    index index.html index.htm;
 
-    server_name _;
+    index index.html;
 
     location / {
         try_files \$uri \$uri/ =404;
     }
 
     error_page 404 /404.html;
-    location = /404.html {
-        internal;
-    }
+    location = /404.html {}
 }
 EOF
 
